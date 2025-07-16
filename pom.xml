@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project 
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
 <modelVersion>4.0.0</modelVersion>
  
     <parent>
@@ -72,7 +74,7 @@
 </configuration>
 </plugin>
  
-            <!-- Surefire plugin (intègre jacocoArgLine) -->
+            <!-- Surefire plugin (avec jacocoArgLine) -->
 <plugin>
 <groupId>org.apache.maven.plugins</groupId>
 <artifactId>maven-surefire-plugin</artifactId>
@@ -96,7 +98,7 @@
 </configuration>
 </plugin>
  
-            <!-- JaCoCo plugin correctement configuré -->
+            <!-- JaCoCo plugin -->
 <plugin>
 <groupId>org.jacoco</groupId>
 <artifactId>jacoco-maven-plugin</artifactId>
