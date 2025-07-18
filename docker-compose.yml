@@ -1,15 +1,17 @@
+version: '3.8'
+
 services:
   app:
     image: chaouch2/foyer:latest
+    container_name: app  # <== nom pour que Prometheus puisse le résoudre
     ports:
-      - "8083:8080"  # Tu as déjà changé le port app → VM
+      - "8083:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     depends_on:
       - mysql
-    labels:
-      - "prometheus.scrape=true"
-      - "prometheus.port=8080"
+    networks:
+      - monitoring
 
   mysql:
     image: mysql:8
@@ -19,6 +21,8 @@ services:
       MYSQL_ROOT_PASSWORD: root
     ports:
       - "3306:3306"
+    networks:
+      - monitoring
 
   prometheus:
     image: prom/prometheus
@@ -26,6 +30,8 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - monitoring
 
   grafana:
     image: grafana/grafana
@@ -33,6 +39,12 @@ services:
       - "3000:3000"
     volumes:
       - grafana-storage:/var/lib/grafana
+    networks:
+      - monitoring
 
 volumes:
   grafana-storage:
+
+networks:
+  monitoring:
+    driver: bridge
