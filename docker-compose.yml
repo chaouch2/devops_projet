@@ -5,7 +5,7 @@ services:
     image: chaouch2/foyer:latest
     container_name: app
     ports:
-      - "8086:8080"  # hôte:conteneur → pour éviter le conflit avec Jenkins
+      - "8083:8086"  # hôte:conteneur, 8086 dans conteneur (Spring Boot), 8083 exposé sur hôte
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     depends_on:
