@@ -1,26 +1,11 @@
-version: '3.8'
-
 services:
   app:
     image: chaouch2/foyer:latest
     container_name: app
     ports:
-      - "8083:8086"  # hôte:conteneur, 8086 dans conteneur (Spring Boot), 8083 exposé sur hôte
+      - "8083:8086"  # Expose le port 8086 (celui configuré dans Spring)
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-    depends_on:
-      - mysql
-    networks:
-      - monitoring
-
-  mysql:
-    image: mysql:8
-    restart: always
-    environment:
-      MYSQL_DATABASE: foyer
-      MYSQL_ROOT_PASSWORD: root
-    ports:
-      - "3306:3306"
     networks:
       - monitoring
 
