@@ -1,6 +1,6 @@
 services:
   app:
-    image: chaouch2/foyer:latest
+    image: chaouch2/foyer
     container_name: app
     ports:
       - "8083:8086"  # Expose le port 8086 (celui configuré dans Spring)
