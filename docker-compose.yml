@@ -1,6 +1,6 @@
 services:
   app:
-    image: chaouch2/foyer  # Ce sera remplacé par ton image locale dans le pipeline
+    image: chaouch2/foyer:latest  # Ce sera remplacé par ton image locale dans le pipeline
     container_name: app
     ports:
       - "8083:8086"  # 8086 = port Spring, 8083 = port d'accès externe
