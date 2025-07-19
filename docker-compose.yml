@@ -5,7 +5,7 @@ services:
     image: chaouch2/foyer:latest
     container_name: app
     ports:
-      - "8083:8086"  # 8086 = port interne Spring Boot, 8083 = accès externe
+      - "8086:8086"  # 8086 = port interne Spring Boot, 8083 = accès externe
     environment:
       - SPRING_PROFILES_ACTIVE=prod
     networks:
