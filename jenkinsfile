@@ -1,0 +1,172 @@
+pipeline {
+    agent any
+
+    environment {
+        SONARQUBE_ENV = 'SQr'                               // Nom du serveur SonarQube dans Jenkins
+        DOCKER_IMAGE = 'chaouch2/foyer'                     // Image Docker finale
+        SETTINGS_XML_PATH = '/var/lib/jenkins/.m2/settings.xml'
+    }
+
+    stages {
+        stage('📥 Clone Repository') {
+            steps {
+                echo '🔹 Cloning the Git repository...'
+                sh 'rm -rf devops_projet'
+                sh 'git clone https://github.com/chaouch2/devops_projet.git'
+            }
+        }
+
+        stage('🧹 Clean') {
+            steps {
+                dir('devops_projet') {
+                    echo '🔹 Cleaning the project...'
+                    sh 'mvn clean'
+                }
+            }
+        }
+
+        stage('⚙️ Compile') {
+            steps {
+                dir('devops_projet') {
+                    echo '🔹 Compiling the project with Maven...'
+                    sh 'mvn compile'
+                }
+            }
+        }
+
+        stage('✅ Run Unit Tests') {
+            steps {
+                dir('devops_projet') {
+                    echo '🔹 Running unit tests...'
+                    sh 'mvn test'
+                }
+            }
+        }
+
+        stage('🧪 Tests d’intégration') {
+            steps {
+                dir('devops_projet') {
+                    echo '🔬 Running integration tests...'
+                    sh 'mvn verify -Dskip.unit.tests=true'
+                }
+            }
+        }
+
+        stage('📊 Vérification JaCoCo') {
+            steps {
+                dir('devops_projet') {
+                    echo '🔍 Checking JaCoCo exec file...'
+                    sh 'find . -name "jacoco.exec"'
+                }
+            }
+        }
+
+        stage('📄 Rapport HTML JaCoCo') {
+            steps {
+                dir('devops_projet') {
+                    echo '📄 Génération du rapport JaCoCo...'
+                    sh 'mvn jacoco:report'
+                }
+            }
+        }
+
+        stage('📤 Publication JaCoCo') {
+            steps {
+                dir('devops_projet') {
+                    echo '📤 Publication du rapport HTML JaCoCo...'
+                    publishHTML(target: [
+                        reportDir: 'target/site/jacoco',
+                        reportFiles: 'index.html',
+                        reportName: 'JaCoCo Coverage Report',
+                        keepAll: true,
+                        alwaysLinkToLastBuild: true,
+                        allowMissing: false
+                    ])
+                }
+            }
+        }
+
+        stage('🔎 Analyse SonarQube') {
+            steps {
+                dir('devops_projet') {
+                    script {
+                        withSonarQubeEnv("${SONARQUBE_ENV}") {
+                            sh 'mvn sonar:sonar'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('📦 Déploiement Nexus') {
+            steps {
+                dir('devops_projet') {
+                    echo '🚀 Déploiement vers Nexus...'
+                    sh "mvn deploy -s $SETTINGS_XML_PATH"
+                }
+            }
+        }
+
+stage('Build Docker Image') {
+    steps {
+        dir('devops_projet') {
+            script {
+                def status = sh(script: 'docker build -t chaouch2/foyer:latest .', returnStatus: true)
+                if (status != 0) {
+                    echo "🚨 Build échoué, mais on continue quand même."
+                }
+            }
+        }
+    }
+}
+
+stage('Push Docker Image') {
+    environment {
+        DOCKER_IMAGE = 'nouuch/foyer'  // Remplace ici pour ce stage seulement
+    }
+    steps {
+        echo '📤 Pushing Docker image to DockerHub...'
+        withCredentials([usernamePassword(credentialsId: 'docker-credentials-id', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            script {
+                try {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    sh "docker push ${DOCKER_IMAGE}:latest"
+                    sh 'docker logout'
+                } catch (err) {
+                    echo "⚠️ Le push Docker a échoué mais le pipeline continue : ${err}"
+                }
+            }
+        }
+    }
+}
+
+
+        stage('🚀 Run Docker Compose') {
+            steps {
+                dir('devops_projet') {
+                    echo '🚀 Starting containers with Docker Compose...'
+                    sh 'docker compose down || true'
+                    sh 'docker compose up -d'
+                }
+            }
+        }
+    }
+}
+stage('🔒 OWASP Security Scan 🛡️') {
+    steps {
+        echo '🚀 Lancement de l\'analyse de sécurité OWASP...'
+        sh 'mvn org.owasp:dependency-check-maven:check'
+
+        echo '🧐 Vérification des vulnérabilités critiques (CVSS ≥ 7.0)...'
+        script {
+            def status = sh(script: 'grep -q "CVSS Score: [7-9]" target/dependency-check-report.html', returnStatus: true)
+            if (status == 0) {
+                echo '⚠️ Vulnérabilités critiques détectées !'
+                // Tu peux envoyer un mail, Slack, etc.
+            } else {
+                echo '✅ Aucune vulnérabilité critique trouvée.'
+            }
+        }
+    }
+}
+
