@@ -12,9 +12,6 @@ services:
       - monitoring
 
   prometheus:
-     dns:
-      - 8.8.8.8
-      - 8.8.4.4
     image: prom/prometheus:latest
     container_name: prometheus
     ports:
